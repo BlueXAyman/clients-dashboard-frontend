@@ -13,8 +13,9 @@ function ClientList({ clients, selectClient, setClients, editClient }) {
     branch: 'TSDI',
   });
   const [editingClientId, setEditingClientId] = useState(null);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [editModalIsOpen, setEditModalIsOpen] = useState(false);
   const [unpaidClients, setUnpaidClients] = useState([]);
+  const [unpaidModalIsOpen, setUnpaidModalIsOpen] = useState(false);
 
   const filteredClients = clients.filter(client => {
     const fullName = `${client.firstName} ${client.lastName}`.toLowerCase();
@@ -44,6 +45,7 @@ function ClientList({ clients, selectClient, setClients, editClient }) {
       branch: client.branch
     });
     setEditingClientId(client.id);
+    setEditModalIsOpen(true);
   };
 
   const handleSave = () => {
@@ -56,6 +58,7 @@ function ClientList({ clients, selectClient, setClients, editClient }) {
         number: '',
         branch: 'TSDI',
       });
+      setEditModalIsOpen(false);
     }
   };
 
@@ -63,7 +66,7 @@ function ClientList({ clients, selectClient, setClients, editClient }) {
     axios.get('http://localhost:3001/api/clients/unpaid/currentMonth')
       .then(response => {
         setUnpaidClients(response.data);
-        setModalIsOpen(true);
+        setUnpaidModalIsOpen(true);
       })
       .catch(error => {
         console.error('There was an error fetching unpaid clients!', error);
@@ -100,49 +103,56 @@ function ClientList({ clients, selectClient, setClients, editClient }) {
           </li>
         ))}
       </ul>
-      {editingClientId && (
-        <div className="edit-client-form">
-          <h3>Edit Client</h3>
-          <input
-            type="text"
-            value={clientData.firstName}
-            onChange={(e) => setClientData({ ...clientData, firstName: e.target.value })}
-            placeholder="First Name"
-          />
-          <input
-            type="text"
-            value={clientData.lastName}
-            onChange={(e) => setClientData({ ...clientData, lastName: e.target.value })}
-            placeholder="Last Name"
-          />
-          <input
-            type="text"
-            value={clientData.number}
-            onChange={(e) => setClientData({ ...clientData, number: e.target.value })}
-            placeholder="Number"
-          />
-          <select
-            value={clientData.branch}
-            onChange={(e) => setClientData({ ...clientData, branch: e.target.value })}
-          >
-            <option value="TSDI">TSDI</option>
-            <option value="TSGE">TSGE</option>
-          </select>
-          <button onClick={handleSave}>Save</button>
-          <button onClick={() => {
-            setEditingClientId(null);
-            setClientData({
-              firstName: '',
-              lastName: '',
-              number: '',
-              branch: 'TSDI',
-            });
-          }}>Cancel</button>
-        </div>
-      )}
+      
       <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={() => setModalIsOpen(false)}
+        isOpen={editModalIsOpen}
+        onRequestClose={() => setEditModalIsOpen(false)}
+        contentLabel="Edit Client"
+        className="modal"
+        overlayClassName="overlay"
+      >
+        <h3>Edit Client</h3>
+        <input
+          type="text"
+          value={clientData.firstName}
+          onChange={(e) => setClientData({ ...clientData, firstName: e.target.value })}
+          placeholder="First Name"
+        />
+        <input
+          type="text"
+          value={clientData.lastName}
+          onChange={(e) => setClientData({ ...clientData, lastName: e.target.value })}
+          placeholder="Last Name"
+        />
+        <input
+          type="text"
+          value={clientData.number}
+          onChange={(e) => setClientData({ ...clientData, number: e.target.value })}
+          placeholder="Number"
+        />
+        <select
+          value={clientData.branch}
+          onChange={(e) => setClientData({ ...clientData, branch: e.target.value })}
+        >
+          <option value="TSDI">TSDI</option>
+          <option value="TSGE">TSGE</option>
+        </select>
+        <button onClick={handleSave}>Save</button>
+        <button onClick={() => {
+          setEditingClientId(null);
+          setClientData({
+            firstName: '',
+            lastName: '',
+            number: '',
+            branch: 'TSDI',
+          });
+          setEditModalIsOpen(false);
+        }}>Cancel</button>
+      </Modal>
+      
+      <Modal
+        isOpen={unpaidModalIsOpen}
+        onRequestClose={() => setUnpaidModalIsOpen(false)}
         contentLabel="Unpaid Clients"
         className="modal"
         overlayClassName="overlay"
@@ -155,7 +165,7 @@ function ClientList({ clients, selectClient, setClients, editClient }) {
             </li>
           ))}
         </ul>
-        <button onClick={() => setModalIsOpen(false)}>Close</button>
+        <button onClick={() => setUnpaidModalIsOpen(false)}>Close</button>
       </Modal>
     </div>
   );
